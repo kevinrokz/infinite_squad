@@ -3,10 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Kevin Squad Battle 3D</title>
+<title>Squad Battle 3D</title>
 
 <style>
-*{box-sizing:border-box}
+*{
+    box-sizing:border-box;
+    -webkit-user-select:none;
+    user-select:none;
+}
+
 html,body{
     margin:0;
     width:100%;
@@ -16,73 +21,163 @@ html,body{
     font-family:Arial,sans-serif;
     touch-action:none;
 }
-canvas{display:block}
+
+canvas{
+    display:block;
+}
+
+#menu,
+#pauseScreen,
+#gameOver{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.82);
+    color:white;
+    text-align:center;
+}
+
+.panel{
+    width:min(500px,92%);
+    padding:30px;
+    border-radius:18px;
+    background:#18232d;
+    box-shadow:0 20px 80px rgba(0,0,0,.7);
+}
+
+.panel h1{
+    margin-top:0;
+}
+
+input{
+    width:100%;
+    padding:14px;
+    border:1px solid #657786;
+    border-radius:8px;
+    background:#0c1318;
+    color:white;
+    font-size:18px;
+    outline:none;
+}
+
+button{
+    padding:13px 24px;
+    margin:8px;
+    border:0;
+    border-radius:9px;
+    background:#1687ff;
+    color:white;
+    font-weight:bold;
+    font-size:16px;
+}
+
+button:active{
+    transform:scale(.96);
+}
+
+.hidden{
+    display:none!important;
+}
+
+/* HUD */
 
 #hud{
     position:fixed;
     inset:0;
-    color:white;
+    z-index:20;
     pointer-events:none;
+    color:white;
     text-shadow:0 2px 4px #000;
-    z-index:5;
 }
 
-#stats{
+#topLeft{
     position:absolute;
-    left:15px;
+    left:14px;
     top:12px;
-    font-size:17px;
     line-height:1.5;
+    font-size:16px;
 }
 
-#teamBox{
+#squad{
     position:absolute;
-    left:15px;
-    top:135px;
-    background:rgba(0,0,0,.45);
-    border-radius:10px;
+    left:14px;
+    top:125px;
+    width:235px;
     padding:10px;
-    width:220px;
+    border-radius:10px;
+    background:rgba(0,0,0,.42);
 }
 
-.member{
-    padding:4px;
+.squadMember{
+    padding:5px 4px;
     margin:2px 0;
     border-radius:5px;
 }
 
-.alive{color:#63ff63}
-.down{color:#ffb52e}
-.dead{color:#ff4444}
-
-#leaderboard{
-    position:absolute;
-    right:15px;
-    top:15px;
-    width:220px;
-    padding:10px;
-    background:rgba(0,0,0,.45);
-    border-radius:10px;
+.ok{
+    color:#5dff69;
 }
 
-#leaderboard h3{
+.downed{
+    color:#ffd23d;
+}
+
+.dead{
+    color:#ff4141;
+}
+
+#board{
+    position:absolute;
+    right:14px;
+    top:14px;
+    width:220px;
+    padding:10px;
+    border-radius:10px;
+    background:rgba(0,0,0,.42);
+}
+
+#board h3{
     margin:0 0 8px;
     text-align:center;
 }
 
-.row{
+.boardRow{
     display:flex;
     justify-content:space-between;
-    font-size:14px;
     padding:3px 0;
+}
+
+#objective{
+    position:absolute;
+    left:50%;
+    top:15px;
+    transform:translateX(-50%);
+    padding:8px 14px;
+    background:rgba(0,0,0,.38);
+    border-radius:8px;
+    font-weight:bold;
+}
+
+#message{
+    position:absolute;
+    left:50%;
+    top:75px;
+    transform:translateX(-50%);
+    font-size:19px;
+    font-weight:bold;
+    text-align:center;
+    width:90%;
 }
 
 #crosshair{
     position:absolute;
     left:50%;
     top:50%;
-    width:22px;
-    height:22px;
+    width:24px;
+    height:24px;
     transform:translate(-50%,-50%);
 }
 
@@ -95,314 +190,313 @@ canvas{display:block}
 
 #crosshair:before{
     width:2px;
-    height:22px;
-    left:10px;
+    height:24px;
+    left:11px;
 }
 
 #crosshair:after{
+    width:24px;
     height:2px;
-    width:22px;
-    top:10px;
+    top:11px;
 }
 
-#message{
-    position:absolute;
-    left:50%;
-    top:75px;
-    transform:translateX(-50%);
-    font-size:20px;
-    font-weight:bold;
-    text-align:center;
-}
-
-#help{
+#controls{
     position:absolute;
     bottom:12px;
-    left:15px;
-    font-size:14px;
+    left:14px;
+    font-size:13px;
 }
 
-.screen{
+/* teammate markers */
+
+.marker{
     position:fixed;
-    inset:0;
-    z-index:20;
-    background:rgba(0,0,0,.82);
-    color:white;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-}
-
-.panel{
-    width:min(500px,90%);
-    background:#16202b;
-    border:1px solid #52697c;
-    border-radius:16px;
-    padding:30px;
-}
-
-.panel h1{
-    margin-top:0;
-}
-
-input{
-    width:100%;
-    padding:13px;
-    margin:10px 0;
-    background:#0c1319;
-    border:1px solid #667b8d;
-    border-radius:8px;
-    color:white;
-    font-size:17px;
-}
-
-button{
-    border:0;
-    background:#1687ff;
-    color:white;
+    z-index:19;
+    color:#fff;
     font-weight:bold;
-    padding:12px 20px;
-    border-radius:8px;
-    font-size:16px;
-    margin:5px;
+    font-size:13px;
+    text-align:center;
+    pointer-events:none;
+    transform:translate(-50%,-50%);
+    white-space:nowrap;
 }
 
-.hidden{display:none!important}
+.markerArrow{
+    display:block;
+    font-size:18px;
+}
 
-/* MOBILE */
+/* mobile */
 
-#mobile{
+#mobileControls{
     display:none;
     position:fixed;
     inset:0;
-    z-index:10;
+    z-index:30;
     pointer-events:none;
 }
 
-#stickBase{
+#joy{
     position:absolute;
     left:25px;
     bottom:30px;
-    width:130px;
-    height:130px;
-    border-radius:50%;
+    width:140px;
+    height:140px;
     border:2px solid rgba(255,255,255,.4);
-    background:rgba(0,0,0,.2);
+    border-radius:50%;
+    background:rgba(0,0,0,.18);
     pointer-events:auto;
 }
 
-#stick{
+#knob{
     position:absolute;
-    left:35px;
-    top:35px;
+    left:40px;
+    top:40px;
     width:56px;
     height:56px;
     border-radius:50%;
-    background:rgba(255,255,255,.35);
+    background:rgba(255,255,255,.4);
 }
 
-.mbtn{
+.mButton{
     position:absolute;
     width:70px;
     height:70px;
     border-radius:50%;
-    background:rgba(0,0,0,.45);
     border:2px solid rgba(255,255,255,.45);
+    background:rgba(0,0,0,.42);
     color:white;
     display:flex;
-    justify-content:center;
     align-items:center;
-    pointer-events:auto;
+    justify-content:center;
     font-weight:bold;
+    pointer-events:auto;
 }
 
-#mobileShoot{
+#shootButton{
     right:25px;
     bottom:35px;
 }
 
-#mobileJump{
+#jumpButton{
     right:110px;
     bottom:120px;
 }
 
-#mobileRevive{
+#reviveButton{
     right:25px;
     bottom:125px;
 }
 
-#mobileRun{
-    left:170px;
+#runButton{
+    left:180px;
     bottom:40px;
 }
 
 @media(pointer:coarse){
-    #mobile{display:block}
-    #help{display:none}
+    #mobileControls{
+        display:block;
+    }
+
+    #controls{
+        display:none;
+    }
 }
 </style>
 </head>
 
 <body>
 
-<div id="start" class="screen">
+<div id="menu">
     <div class="panel">
-        <h1>🔫 KEVIN SQUAD BATTLE</h1>
+        <h1>🔫 SQUAD BATTLE 3D</h1>
+
         <p>
-            Fight together with your squad.
-            Protect them, revive them and help them win.
+            Build your squad.<br>
+            Fight together.<br>
+            Protect your teammates.
         </p>
 
-        <input id="nameInput"
-               maxlength="18"
-               value="Kevin"
-               placeholder="Player name">
+        <input
+            id="nameInput"
+            maxlength="18"
+            value="Kevin"
+            placeholder="Player name"
+        >
 
-        <button onclick="startGame()">START GAME</button>
+        <br>
 
-        <p>
-            PC: WASD / Arrow Keys = Move<br>
-            Mouse = Look · Space = Shoot / Jump<br>
-            E = Revive · Shift = Run · P = Pause
+        <button id="startButton">
+            START GAME
+        </button>
+
+        <p style="font-size:13px;line-height:1.6">
+            PC:<br>
+            WASD / Arrow Keys — Move<br>
+            Mouse — Look<br>
+            Space — Shoot / Jump<br>
+            Shift — Sprint<br>
+            E — Revive teammate<br>
+            P — Pause
         </p>
     </div>
 </div>
 
-<div id="pause" class="screen hidden">
+<div id="pauseScreen" class="hidden">
     <div class="panel">
         <h1>⏸ PAUSED</h1>
-        <button onclick="togglePause()">RESUME</button>
+        <button id="resumeButton">RESUME</button>
         <button onclick="location.reload()">RESTART</button>
     </div>
 </div>
 
-<div id="end" class="screen hidden">
+<div id="gameOver" class="hidden">
     <div class="panel">
-        <h1 id="endTitle"></h1>
-        <p id="endText"></p>
+        <h1 id="gameOverTitle"></h1>
+        <p id="gameOverText"></p>
         <button onclick="location.reload()">PLAY AGAIN</button>
     </div>
 </div>
 
 <div id="hud">
 
-    <div id="stats">
-        ❤️ Health: <span id="hp">100</span><br>
-        🔫 Ammo: <span id="ammo">30</span><br>
-        ⭐ Score: <span id="score">0</span><br>
-        👤 <span id="pname">Kevin</span>
+    <div id="topLeft">
+        ❤️ HP: <span id="healthText">100</span><br>
+        🔫 Ammo: <span id="ammoText">30</span><br>
+        ⭐ Score: <span id="scoreText">0</span><br>
+        👤 <span id="nameText">Kevin</span>
     </div>
 
-    <div id="teamBox">
+    <div id="squad">
         <b>👥 YOUR SQUAD</b>
-        <div id="teamMembers"></div>
+        <div id="squadList"></div>
     </div>
 
-    <div id="leaderboard">
+    <div id="board">
         <h3>🏆 LEADERBOARD</h3>
-        <div id="leaderRows"></div>
+        <div id="leaderList"></div>
+    </div>
+
+    <div id="objective">
+        YOUR TEAM: <span id="friendlyCount">4</span>
+        &nbsp; | &nbsp;
+        ENEMY TEAM: <span id="enemyCount">12</span>
     </div>
 
     <div id="message"></div>
+
     <div id="crosshair"></div>
 
-    <div id="help">
-        WASD / ARROWS: Move |
-        Mouse: Look |
-        Space: Shoot/Jump |
-        Shift: Sprint |
-        E: Revive |
-        P: Pause
+    <div id="controls">
+        WASD / ARROWS = MOVE |
+        MOUSE = LOOK |
+        SPACE = SHOOT/JUMP |
+        SHIFT = RUN |
+        E = REVIVE |
+        P = PAUSE
     </div>
+
 </div>
 
-<div id="mobile">
-    <div id="stickBase">
-        <div id="stick"></div>
+<div id="mobileControls">
+
+    <div id="joy">
+        <div id="knob"></div>
     </div>
 
-    <div id="mobileShoot" class="mbtn">🔫</div>
-    <div id="mobileJump" class="mbtn">JUMP</div>
-    <div id="mobileRevive" class="mbtn">REVIVE</div>
-    <div id="mobileRun" class="mbtn">RUN</div>
+    <div id="shootButton" class="mButton">🔫</div>
+    <div id="jumpButton" class="mButton">JUMP</div>
+    <div id="reviveButton" class="mButton">REVIVE</div>
+    <div id="runButton" class="mButton">RUN</div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
 <script>
 
-/* ============================================================
-   GAME VARIABLES
-   ============================================================ */
+/* =========================================================
+   BASIC GAME STATE
+========================================================= */
 
 let scene;
 let camera;
 let renderer;
 let clock;
 
-let player;
-let teammates=[];
-let enemies=[];
-let bullets=[];
-let buildings=[];
-
-let gameStarted=false;
+let gameRunning=false;
 let paused=false;
 let gameEnded=false;
 
 let playerName="Kevin";
 
+let player;
+let teammates=[];
+let enemies=[];
+let bullets=[];
+let buildings=[];
+let markers=[];
+
 let score=0;
-let ammo=30;
 let playerKills=0;
+let ammo=30;
 
 let yaw=0;
 let pitch=0;
 
-let velocityY=0;
+let verticalVelocity=0;
 let grounded=true;
 
 let shooting=false;
 let sprinting=false;
 
-let lastPlayerShot=0;
+let lastShot=0;
 
 const keys={};
 
 let joystickX=0;
 let joystickY=0;
 
-const SPEED=7;
-const RUN_SPEED=11;
-const GRAVITY=24;
-const JUMP=9;
+
+/* =========================================================
+   CONSTANTS
+========================================================= */
+
+const PLAYER_SPEED=7;
+const SPRINT_SPEED=11;
+const GRAVITY=25;
+const JUMP_POWER=10;
 
 
-/* ============================================================
-   INIT
-   ============================================================ */
+/* =========================================================
+   START
+========================================================= */
+
+init();
 
 function init(){
 
     scene=new THREE.Scene();
 
     scene.background=
-        new THREE.Color(0x72b4dc);
+        new THREE.Color(0x76b7df);
 
     scene.fog=
         new THREE.Fog(
-            0x72b4dc,
-            120,
+            0x76b7df,
+            100,
             500
         );
 
-    camera=new THREE.PerspectiveCamera(
-        75,
-        innerWidth/innerHeight,
-        .1,
-        1000
-    );
+
+    camera=
+        new THREE.PerspectiveCamera(
+            75,
+            innerWidth/innerHeight,
+            .1,
+            1000
+        );
+
 
     renderer=
         new THREE.WebGLRenderer({
@@ -424,37 +518,42 @@ function init(){
         renderer.domElement
     );
 
+
     clock=new THREE.Clock();
 
-    setupLighting();
+
+    createLights();
     createWorld();
     createPlayer();
-    createTeammates();
+    createSquad();
     createEnemies();
     setupControls();
 
-    window.addEventListener(
+
+    addEventListener(
         "resize",
         resize
     );
+
 
     animate();
 }
 
 
-/* ============================================================
-   LIGHTING
-   ============================================================ */
+/* =========================================================
+   LIGHTS
+========================================================= */
 
-function setupLighting(){
+function createLights(){
 
     scene.add(
         new THREE.HemisphereLight(
             0xcceeff,
-            0x263c25,
+            0x304530,
             2
         )
     );
+
 
     const sun=
         new THREE.DirectionalLight(
@@ -464,7 +563,7 @@ function setupLighting(){
 
     sun.position.set(
         100,
-        160,
+        150,
         80
     );
 
@@ -474,20 +573,20 @@ function setupLighting(){
 }
 
 
-/* ============================================================
+/* =========================================================
    WORLD
-   ============================================================ */
+========================================================= */
 
 function createWorld(){
 
     const ground=
         new THREE.Mesh(
             new THREE.PlaneGeometry(
-                1000,
-                1000
+                2000,
+                2000
             ),
             new THREE.MeshStandardMaterial({
-                color:0x3c783d
+                color:0x3c7d3f
             })
         );
 
@@ -499,44 +598,82 @@ function createWorld(){
 
 
     /*
-     * Buildings.
-     * These are real collision objects.
-     */
+       Roads
+    */
 
-    const spots=[
-        [-70,-60,30,30,18],
-        [65,-75,25,35,24],
-        [-90,50,40,25,16],
-        [75,70,30,30,20],
-        [10,-100,35,25,22],
-        [-20,100,25,35,18],
-        [120,10,35,25,25],
-        [-130,-10,25,35,18]
+    const roadMaterial=
+        new THREE.MeshStandardMaterial({
+            color:0x34383b
+        });
+
+
+    const road1=
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                1000,.05,24
+            ),
+            roadMaterial
+        );
+
+    road1.position.y=.02;
+
+    scene.add(road1);
+
+
+    const road2=
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                24,.05,1000
+            ),
+            roadMaterial
+        );
+
+    road2.position.y=.025;
+
+    scene.add(road2);
+
+
+    /*
+       Buildings
+    */
+
+    const buildingData=[
+        [-75,-65,32,30,18],
+        [70,-75,28,38,24],
+        [-95,55,40,28,17],
+        [75,70,34,30,22],
+        [10,-105,38,25,20],
+        [-25,105,30,38,18],
+        [125,15,38,28,25],
+        [-135,-15,28,38,20],
+        [170,-120,35,30,22],
+        [-170,120,35,35,24]
     ];
 
-    for(const s of spots){
+
+    for(const b of buildingData){
 
         createBuilding(
-            s[0],
-            s[1],
-            s[2],
-            s[3],
-            s[4]
+            b[0],
+            b[1],
+            b[2],
+            b[3],
+            b[4]
         );
     }
 
 
     /*
-     * Trees
-     */
+       Random scenery.
+    */
 
-    for(let i=0;i<80;i++){
+    for(let i=0;i<140;i++){
 
         const x=
-            Math.random()*800-400;
+            Math.random()*900-450;
 
         const z=
-            Math.random()*800-400;
+            Math.random()*900-450;
 
         if(
             Math.abs(x)<35 &&
@@ -550,13 +687,19 @@ function createWorld(){
 
 
 function createBuilding(
-    x,z,w,d,h
+    x,
+    z,
+    width,
+    depth,
+    height
 ){
 
-    const mesh=
+    const building=
         new THREE.Mesh(
             new THREE.BoxGeometry(
-                w,h,d
+                width,
+                height,
+                depth
             ),
             new THREE.MeshStandardMaterial({
                 color:
@@ -564,81 +707,101 @@ function createBuilding(
             })
         );
 
-    mesh.position.set(
+
+    building.position.set(
         x,
-        h/2,
+        height/2,
         z
     );
 
-    mesh.castShadow=true;
-    mesh.receiveShadow=true;
+    building.castShadow=true;
+    building.receiveShadow=true;
 
-    scene.add(mesh);
+    scene.add(building);
+
 
     buildings.push({
         x,
         z,
-        w,
-        d
+        width,
+        depth
     });
 }
 
 
 function createTree(x,z){
 
-    const g=
+    const group=
         new THREE.Group();
+
 
     const trunk=
         new THREE.Mesh(
             new THREE.CylinderGeometry(
-                .6,.8,5,8
+                .55,
+                .75,
+                5,
+                8
             ),
             new THREE.MeshStandardMaterial({
-                color:0x68442b
+                color:0x67442c
             })
         );
 
     trunk.position.y=2.5;
 
+
     const leaves=
         new THREE.Mesh(
             new THREE.ConeGeometry(
-                3.5,
+                3.4,
                 7,
                 8
             ),
             new THREE.MeshStandardMaterial({
-                color:0x1e5c2b
+                color:0x225f2b
             })
         );
 
     leaves.position.y=7;
 
-    g.add(trunk);
-    g.add(leaves);
 
-    g.position.set(x,0,z);
+    group.add(trunk);
+    group.add(leaves);
 
-    scene.add(g);
+
+    group.position.set(
+        x,
+        0,
+        z
+    );
+
+
+    scene.add(group);
 }
 
 
-/* ============================================================
+/* =========================================================
    COLLISION
-   ============================================================ */
+========================================================= */
 
 function buildingCollision(
-    x,z,r=.7
+    x,
+    z,
+    radius=.7
 ){
 
     for(const b of buildings){
 
         if(
-            x>b.x-b.w/2-r &&
-            x<b.x+b.w/2+r &&
-            z>b.z-b.d/2-r &&
-            z<b.z+b.d/2+r
+            x >
+            b.x-b.width/2-radius &&
+            x <
+            b.x+b.width/2+radius &&
+            z >
+            b.z-b.depth/2-radius &&
+            z <
+            b.z+b.depth/2+radius
         ){
             return true;
         }
@@ -648,85 +811,101 @@ function buildingCollision(
 }
 
 
-function moveObject(
-    obj,
+function moveEntity(
+    entity,
     dx,
     dz
 ){
 
-    const ox=obj.position.x;
-    const oz=obj.position.z;
+    const oldX=
+        entity.position.x;
 
-    obj.position.x+=dx;
+    const oldZ=
+        entity.position.z;
+
+
+    entity.position.x+=dx;
 
     if(
         buildingCollision(
-            obj.position.x,
-            obj.position.z,
-            obj.radius||.7
+            entity.position.x,
+            entity.position.z,
+            entity.radius
         )
     ){
-        obj.position.x=ox;
+        entity.position.x=oldX;
     }
 
-    obj.position.z+=dz;
+
+    entity.position.z+=dz;
 
     if(
         buildingCollision(
-            obj.position.x,
-            obj.position.z,
-            obj.radius||.7
+            entity.position.x,
+            entity.position.z,
+            entity.radius
         )
     ){
-        obj.position.z=oz;
+        entity.position.z=oldZ;
     }
 }
 
 
-/* ============================================================
+/* =========================================================
    PLAYER
-   ============================================================ */
+========================================================= */
 
 function createPlayer(){
 
     const group=
         new THREE.Group();
 
+
     const body=
         new THREE.Mesh(
             new THREE.BoxGeometry(
-                1.3,2.2,1
+                1.25,
+                2.1,
+                1
             ),
             new THREE.MeshStandardMaterial({
-                color:0x147cff
+                color:0x1685ff
             })
         );
 
-    body.position.y=1.1;
+    body.position.y=1.05;
+
     body.castShadow=true;
+
 
     const head=
         new THREE.Mesh(
             new THREE.SphereGeometry(
-                .53,
+                .52,
                 16,
                 12
             ),
             new THREE.MeshStandardMaterial({
-                color:0xffc49b
+                color:0xffc59f
             })
         );
 
-    head.position.y=2.45;
+    head.position.y=2.35;
+
 
     group.add(body);
     group.add(head);
 
+
     group.position.set(
-        0,0,0
+        0,
+        0,
+        0
     );
 
+
     scene.add(group);
+
 
     player={
         mesh:group,
@@ -735,57 +914,62 @@ function createPlayer(){
         health:100,
         maxHealth:100,
         alive:true,
-        downed:false
+        downed:false,
+        kills:0
     };
+
 
     group.add(camera);
 
     camera.position.set(
         0,
-        2.4,
+        2.5,
         0
     );
 }
 
 
-/* ============================================================
-   TEAMMATES
-   ============================================================ */
+/* =========================================================
+   SQUAD
+========================================================= */
 
-const teammateNames=[
+const squadNames=[
     "Alex",
     "Rex",
     "Nova"
 ];
 
-const teammateColors=[
-    0xffcc22,
-    0xff7b20,
-    0xff37cc
+const squadColors=[
+    0xffd21f,
+    0xff7625,
+    0xff39cf
 ];
 
 
-function createTeammates(){
+function createSquad(){
 
-    const positions=[
-        [-7,0,-6],
-        [7,0,-6],
-        [-8,0,7]
+    const locations=[
+        [-8,-6],
+        [8,-7],
+        [-8,8]
     ];
+
 
     for(let i=0;i<3;i++){
 
         const t=
             createSoldier(
-                teammateNames[i],
-                teammateColors[i]
+                squadNames[i],
+                squadColors[i]
             );
 
+
         t.position.set(
-            positions[i][0],
+            locations[i][0],
             0,
-            positions[i][2]
+            locations[i][1]
         );
+
 
         teammates.push(t);
     }
@@ -800,10 +984,13 @@ function createSoldier(
     const group=
         new THREE.Group();
 
+
     const body=
         new THREE.Mesh(
             new THREE.BoxGeometry(
-                1.25,2.1,1
+                1.25,
+                2.1,
+                1
             ),
             new THREE.MeshStandardMaterial({
                 color
@@ -811,6 +998,9 @@ function createSoldier(
         );
 
     body.position.y=1.05;
+
+    body.castShadow=true;
+
 
     const head=
         new THREE.Mesh(
@@ -820,58 +1010,80 @@ function createSoldier(
                 10
             ),
             new THREE.MeshStandardMaterial({
-                color:0xffc49b
+                color:0xffc59f
             })
         );
 
     head.position.y=2.4;
+
 
     group.add(body);
     group.add(head);
 
     scene.add(group);
 
-    return {
+
+    return{
         mesh:group,
         position:group.position,
         radius:.75,
+
         name,
+
         health:100,
         alive:true,
         downed:false,
+
         kills:0,
+
         target:null,
-        shootTimer:0,
+
+        shotTimer:0,
+
         reviveTimer:0,
-        wander:Math.random()*6
+
+        wanderAngle:
+            Math.random()*Math.PI*2,
+
+        squadSlot:
+            teammates.length
     };
 }
 
 
-/* ============================================================
+/* =========================================================
    ENEMIES
-   ============================================================ */
+========================================================= */
 
 function createEnemies(){
 
     for(let i=0;i<12;i++){
 
-        let x,z;
+        let x;
+        let z;
 
         do{
 
-            const a=
+            const angle=
                 Math.random()*
                 Math.PI*2;
 
-            const d=
+            const distance=
                 90+
-                Math.random()*130;
+                Math.random()*160;
 
-            x=Math.cos(a)*d;
-            z=Math.sin(a)*d;
+            x=
+                Math.cos(angle)*
+                distance;
 
-        }while(buildingCollision(x,z));
+            z=
+                Math.sin(angle)*
+                distance;
+
+        }while(
+            buildingCollision(x,z)
+        );
+
 
         createEnemy(x,z);
     }
@@ -883,17 +1095,21 @@ function createEnemy(x,z){
     const group=
         new THREE.Group();
 
+
     const body=
         new THREE.Mesh(
             new THREE.BoxGeometry(
-                1.3,2.1,1
+                1.3,
+                2.1,
+                1
             ),
             new THREE.MeshStandardMaterial({
-                color:0xe53535
+                color:0xe63838
             })
         );
 
     body.position.y=1.05;
+
 
     const head=
         new THREE.Mesh(
@@ -903,36 +1119,49 @@ function createEnemy(x,z){
                 10
             ),
             new THREE.MeshStandardMaterial({
-                color:0xb57960
+                color:0xb8785e
             })
         );
 
     head.position.y=2.4;
 
+
     group.add(body);
     group.add(head);
 
+
     group.position.set(
-        x,0,z
+        x,
+        0,
+        z
     );
 
+
     scene.add(group);
+
 
     enemies.push({
         mesh:group,
         position:group.position,
         radius:.75,
+
         health:100,
         alive:true,
+        downed:false,
+
         target:null,
-        shootTimer:Math.random()*1000
+
+        shotTimer:
+            Math.random()*1000,
+
+        kills:0
     });
 }
 
 
-/* ============================================================
+/* =========================================================
    CONTROLS
-   ============================================================ */
+========================================================= */
 
 function setupControls(){
 
@@ -942,33 +1171,42 @@ function setupControls(){
 
             keys[e.code]=true;
 
-            if(
-                e.code==="ArrowUp" ||
-                e.code==="ArrowDown" ||
-                e.code==="ArrowLeft" ||
-                e.code==="ArrowRight" ||
-                e.code==="Space"
-            )
+
+            if([
+                "ArrowUp",
+                "ArrowDown",
+                "ArrowLeft",
+                "ArrowRight",
+                "Space"
+            ].includes(e.code)){
                 e.preventDefault();
+            }
+
 
             if(e.code==="Space"){
+
                 shooting=true;
 
-                if(grounded)
-                    jump();
+                jump();
             }
+
 
             if(
                 e.code==="ShiftLeft" ||
                 e.code==="ShiftRight"
-            )
+            ){
                 sprinting=true;
+            }
 
-            if(e.code==="KeyE")
-                reviveNearby();
 
-            if(e.code==="KeyP")
+            if(e.code==="KeyE"){
+                revivePlayerAction();
+            }
+
+
+            if(e.code==="KeyP"){
                 togglePause();
+            }
         }
     );
 
@@ -979,14 +1217,17 @@ function setupControls(){
 
             keys[e.code]=false;
 
+
             if(e.code==="Space")
                 shooting=false;
+
 
             if(
                 e.code==="ShiftLeft" ||
                 e.code==="ShiftRight"
-            )
+            ){
                 sprinting=false;
+            }
         }
     );
 
@@ -995,12 +1236,15 @@ function setupControls(){
         "click",
         ()=>{
 
-            if(!gameStarted ||
-               paused ||
-               gameEnded)
+            if(
+                !gameRunning ||
+                paused ||
+                gameEnded
+            )
                 return;
 
             renderer.domElement.requestPointerLock?.();
+
             shooting=true;
         }
     );
@@ -1016,102 +1260,134 @@ function setupControls(){
             )
                 return;
 
-            yaw-=e.movementX*.0025;
-            pitch-=e.movementY*.0025;
 
-            pitch=Math.max(
-                -1.3,
-                Math.min(
-                    1.3,
-                    pitch
-                )
-            );
+            yaw-=
+                e.movementX*.0025;
+
+            pitch-=
+                e.movementY*.0025;
+
+
+            pitch=
+                Math.max(
+                    -1.3,
+                    Math.min(
+                        1.3,
+                        pitch
+                    )
+                );
         }
     );
 
 
-    setupMobile();
+    setupMobileControls();
 }
 
 
-function setupMobile(){
+/* =========================================================
+   MOBILE
+========================================================= */
 
-    const base=
-        document.getElementById(
-            "stickBase"
-        );
+function setupMobileControls(){
 
-    const stick=
-        document.getElementById(
-            "stick"
-        );
+    const joy=
+        document.getElementById("joy");
+
+    const knob=
+        document.getElementById("knob");
 
     let active=false;
 
 
-    function moveJoystick(e){
+    function joystickMove(e){
 
-        const r=
-            base.getBoundingClientRect();
+        const rect=
+            joy.getBoundingClientRect();
 
-        const cx=
-            r.left+r.width/2;
+        const centerX=
+            rect.left+
+            rect.width/2;
 
-        const cy=
-            r.top+r.height/2;
+        const centerY=
+            rect.top+
+            rect.height/2;
 
-        let dx=e.clientX-cx;
-        let dy=e.clientY-cy;
+
+        let dx=
+            e.clientX-centerX;
+
+        let dy=
+            e.clientY-centerY;
+
 
         const max=42;
 
-        const len=
+        const length=
             Math.sqrt(
-                dx*dx+dy*dy
+                dx*dx+
+                dy*dy
             );
 
-        if(len>max){
 
-            dx=dx/len*max;
-            dy=dy/len*max;
+        if(length>max){
+
+            dx=
+                dx/length*
+                max;
+
+            dy=
+                dy/length*
+                max;
         }
 
-        joystickX=dx/max;
-        joystickY=dy/max;
 
-        stick.style.transform=
+        joystickX=
+            dx/max;
+
+        joystickY=
+            dy/max;
+
+
+        knob.style.transform=
             `translate(${dx}px,${dy}px)`;
     }
 
 
-    base.addEventListener(
+    joy.addEventListener(
         "pointerdown",
         e=>{
+
             active=true;
-            base.setPointerCapture(
+
+            joy.setPointerCapture(
                 e.pointerId
             );
-            moveJoystick(e);
+
+            joystickMove(e);
         }
     );
 
 
-    base.addEventListener(
+    joy.addEventListener(
         "pointermove",
         e=>{
+
             if(active)
-                moveJoystick(e);
+                joystickMove(e);
         }
     );
 
 
-    base.addEventListener(
+    joy.addEventListener(
         "pointerup",
         ()=>{
+
             active=false;
+
             joystickX=0;
             joystickY=0;
-            stick.style.transform=
+
+            knob.style.transform=
                 "translate(0,0)";
         }
     );
@@ -1119,8 +1395,9 @@ function setupMobile(){
 
     const shoot=
         document.getElementById(
-            "mobileShoot"
+            "shootButton"
         );
+
 
     shoot.addEventListener(
         "pointerdown",
@@ -1128,6 +1405,7 @@ function setupMobile(){
             shooting=true;
         }
     );
+
 
     shoot.addEventListener(
         "pointerup",
@@ -1138,7 +1416,7 @@ function setupMobile(){
 
 
     document.getElementById(
-        "mobileJump"
+        "jumpButton"
     ).addEventListener(
         "pointerdown",
         jump
@@ -1146,17 +1424,18 @@ function setupMobile(){
 
 
     document.getElementById(
-        "mobileRevive"
+        "reviveButton"
     ).addEventListener(
         "pointerdown",
-        reviveNearby
+        revivePlayerAction
     );
 
 
     const run=
         document.getElementById(
-            "mobileRun"
+            "runButton"
         );
+
 
     run.addEventListener(
         "pointerdown",
@@ -1164,6 +1443,7 @@ function setupMobile(){
             sprinting=true;
         }
     );
+
 
     run.addEventListener(
         "pointerup",
@@ -1174,11 +1454,13 @@ function setupMobile(){
 }
 
 
-/* ============================================================
-   START
-   ============================================================ */
+/* =========================================================
+   START GAME
+========================================================= */
 
-function startGame(){
+document.getElementById(
+    "startButton"
+).onclick=()=>{
 
     playerName=
         document.getElementById(
@@ -1186,37 +1468,54 @@ function startGame(){
         ).value.trim() ||
         "Kevin";
 
+
     document.getElementById(
-        "pname"
+        "nameText"
     ).textContent=
         playerName;
 
-    document.getElementById(
-        "start"
-    ).classList.add("hidden");
 
-    gameStarted=true;
+    document.getElementById(
+        "menu"
+    ).classList.add(
+        "hidden"
+    );
+
+
+    gameRunning=true;
+
 
     renderer.domElement.requestPointerLock?.();
 
-    message(
-        "Protect your squad! You can revive them with E."
+
+    showMessage(
+        "Protect your squad! Revive teammates with E."
     );
-}
+};
 
 
-/* ============================================================
+document.getElementById(
+    "resumeButton"
+).onclick=
+    togglePause;
+
+
+/* =========================================================
    PLAYER MOVEMENT
-   ============================================================ */
+========================================================= */
 
 function updatePlayer(dt){
 
-    if(!player.alive ||
-       player.downed)
+    if(
+        !player.alive ||
+        player.downed
+    )
         return;
+
 
     let forward=0;
     let right=0;
+
 
     if(
         keys["KeyW"] ||
@@ -1224,17 +1523,20 @@ function updatePlayer(dt){
     )
         forward+=1;
 
+
     if(
         keys["KeyS"] ||
         keys["ArrowDown"]
     )
         forward-=1;
 
+
     if(
         keys["KeyD"] ||
         keys["ArrowRight"]
     )
         right+=1;
+
 
     if(
         keys["KeyA"] ||
@@ -1247,27 +1549,32 @@ function updatePlayer(dt){
     right+=joystickX;
 
 
-    const len=
+    const length=
         Math.sqrt(
             forward*forward+
             right*right
         );
 
-    if(len>1){
 
-        forward/=len;
-        right/=len;
+    if(length>1){
+
+        forward/=length;
+        right/=length;
     }
 
 
     const speed=
-        sprinting ?
-        RUN_SPEED :
-        SPEED;
+        sprinting
+        ? SPRINT_SPEED
+        : PLAYER_SPEED;
 
 
-    const sin=Math.sin(yaw);
-    const cos=Math.cos(yaw);
+    const sin=
+        Math.sin(yaw);
+
+    const cos=
+        Math.cos(yaw);
+
 
     const dx=
         (
@@ -1277,6 +1584,7 @@ function updatePlayer(dt){
         speed*
         dt;
 
+
     const dz=
         (
             right*-sin+
@@ -1285,22 +1593,30 @@ function updatePlayer(dt){
         speed*
         dt;
 
-    moveObject(
+
+    moveEntity(
         player,
         dx,
         dz
     );
 
 
-    velocityY-=GRAVITY*dt;
+    verticalVelocity-=
+        GRAVITY*dt;
+
 
     player.position.y+=
-        velocityY*dt;
+        verticalVelocity*dt;
 
-    if(player.position.y<=0){
+
+    if(
+        player.position.y<=0
+    ){
 
         player.position.y=0;
-        velocityY=0;
+
+        verticalVelocity=0;
+
         grounded=true;
     }
 
@@ -1308,6 +1624,7 @@ function updatePlayer(dt){
     camera.rotation.order="YXZ";
 
     camera.rotation.y=yaw;
+
     camera.rotation.x=pitch;
 }
 
@@ -1315,24 +1632,28 @@ function updatePlayer(dt){
 function jump(){
 
     if(
-        !gameStarted ||
+        !gameRunning ||
         paused ||
         gameEnded ||
+        !player.alive ||
         player.downed
     )
         return;
 
+
     if(grounded){
 
-        velocityY=JUMP;
+        verticalVelocity=
+            JUMP_POWER;
+
         grounded=false;
     }
 }
 
 
-/* ============================================================
-   PLAYER SHOOTING
-   ============================================================ */
+/* =========================================================
+   PLAYER SHOOT
+========================================================= */
 
 function playerShoot(){
 
@@ -1342,13 +1663,20 @@ function playerShoot(){
     )
         return;
 
+
     const now=
         performance.now();
 
-    if(now-lastPlayerShot<130)
+
+    if(
+        now-lastShot<
+        130
+    )
         return;
 
-    lastPlayerShot=now;
+
+    lastShot=now;
+
 
     ammo--;
 
@@ -1361,16 +1689,21 @@ function playerShoot(){
             new THREE.Vector3()
         );
 
+
     const direction=
         new THREE.Vector3(
-            0,0,-1
+            0,
+            0,
+            -1
         );
+
 
     direction.applyQuaternion(
         camera.getWorldQuaternion(
             new THREE.Quaternion()
         )
     );
+
 
     createBullet(
         origin,
@@ -1380,9 +1713,9 @@ function playerShoot(){
 }
 
 
-/* ============================================================
+/* =========================================================
    BULLETS
-   ============================================================ */
+========================================================= */
 
 function createBullet(
     origin,
@@ -1401,27 +1734,37 @@ function createBullet(
                 color:
                     owner==="enemy"
                     ?0xff3333
-                    :0xffff44
+                    :0xffff33
             })
         );
 
-    mesh.position.copy(origin);
+
+    mesh.position.copy(
+        origin
+    );
+
 
     scene.add(mesh);
 
+
     bullets.push({
         mesh,
-        direction:direction.clone(),
+        direction:
+            direction.clone(),
+
         owner,
+
         speed:
             owner==="enemy"
-            ?32
-            :70,
+            ?34
+            :75,
+
         life:2,
+
         damage:
             owner==="enemy"
-            ?9
-            :45
+            ?8
+            :50
     });
 }
 
@@ -1434,14 +1777,18 @@ function updateBullets(dt){
         i--
     ){
 
-        const b=bullets[i];
+        const b=
+            bullets[i];
+
 
         b.mesh.position.addScaledVector(
             b.direction,
             b.speed*dt
         );
 
+
         b.life-=dt;
+
 
         let hit=false;
 
@@ -1454,6 +1801,7 @@ function updateBullets(dt){
                 .1
             )
         ){
+
             hit=true;
         }
 
@@ -1465,43 +1813,43 @@ function updateBullets(dt){
                 b.owner==="teammate"
             ){
 
-                for(const e of enemies){
+                for(
+                    const enemy
+                    of enemies
+                ){
 
-                    if(!e.alive)
+                    if(!enemy.alive)
                         continue;
 
-                    const d=
-                        distanceToCenter(
-                            b.mesh.position,
-                            e
-                        );
 
-                    if(d<1.2){
+                    if(
+                        distance3D(
+                            b.mesh.position,
+                            enemy
+                        )<1.35
+                    ){
 
                         damageEnemy(
-                            e,
+                            enemy,
                             b.damage,
                             b.owner
                         );
 
                         hit=true;
+
                         break;
                     }
                 }
 
             }else{
 
-                /*
-                 * Enemy bullets can hurt player.
-                 */
-
                 if(
                     player.alive &&
                     !player.downed &&
-                    distanceToCenter(
+                    distance3D(
                         b.mesh.position,
                         player
-                    )<1.2
+                    )<1.3
                 ){
 
                     damagePlayer(
@@ -1512,13 +1860,12 @@ function updateBullets(dt){
                 }
 
 
-                /*
-                 * Enemy bullets can hurt teammates.
-                 */
-
                 if(!hit){
 
-                    for(const t of teammates){
+                    for(
+                        const t
+                        of teammates
+                    ){
 
                         if(
                             !t.alive ||
@@ -1526,11 +1873,12 @@ function updateBullets(dt){
                         )
                             continue;
 
+
                         if(
-                            distanceToCenter(
+                            distance3D(
                                 b.mesh.position,
                                 t
-                            )<1.2
+                            )<1.3
                         ){
 
                             damageTeammate(
@@ -1539,6 +1887,7 @@ function updateBullets(dt){
                             );
 
                             hit=true;
+
                             break;
                         }
                     }
@@ -1562,33 +1911,11 @@ function updateBullets(dt){
 }
 
 
-function distanceToCenter(
-    pos,
-    obj
-){
-
-    const x=
-        obj.position.x;
-
-    const y=
-        obj.position.y+1;
-
-    const z=
-        obj.position.z;
-
-    return Math.sqrt(
-        (pos.x-x)**2+
-        (pos.y-y)**2+
-        (pos.z-z)**2
-    );
-}
-
-
-/* ============================================================
+/* =========================================================
    DAMAGE
-   ============================================================ */
+========================================================= */
 
-function damagePlayer(dmg){
+function damagePlayer(damage){
 
     if(
         !player.alive ||
@@ -1596,164 +1923,215 @@ function damagePlayer(dmg){
     )
         return;
 
-    player.health-=dmg;
 
-    if(player.health<=0){
+    player.health-=damage;
+
+
+    if(
+        player.health<=0
+    ){
 
         player.health=0;
+
         player.downed=true;
 
-        message(
-            "💀 YOU ARE DOWN! Your teammates are coming!"
+        showMessage(
+            "💀 YOU ARE DOWN! Your squad can revive you!"
         );
 
-        checkDefeat();
+
+        checkTeamDefeat();
     }
 }
 
 
 function damageTeammate(
-    t,
-    dmg
+    teammate,
+    damage
 ){
 
     if(
-        !t.alive ||
-        t.downed
+        !teammate.alive ||
+        teammate.downed
     )
         return;
 
-    t.health-=dmg;
 
-    if(t.health<=0){
+    teammate.health-=damage;
 
-        t.health=0;
-        t.downed=true;
 
-        message(
-            "⚠️ "+t.name+
-            " is down! Help them!"
+    if(
+        teammate.health<=0
+    ){
+
+        teammate.health=0;
+
+        teammate.downed=true;
+
+
+        showMessage(
+            "⚠️ "+
+            teammate.name+
+            " is DOWN! Go help them!"
         );
     }
 }
 
 
 function damageEnemy(
-    e,
-    dmg,
+    enemy,
+    damage,
     owner
 ){
 
-    if(!e.alive)
+    if(!enemy.alive)
         return;
 
-    e.health-=dmg;
 
-    if(e.health<=0){
+    enemy.health-=damage;
 
-        e.health=0;
-        e.alive=false;
+
+    if(
+        enemy.health<=0
+    ){
+
+        enemy.health=0;
+
+        enemy.alive=false;
+
 
         scene.remove(
-            e.mesh
+            enemy.mesh
         );
+
 
         score+=100;
 
-        if(owner==="player")
+
+        if(owner==="player"){
+
             playerKills++;
+        }
+
 
         if(owner==="teammate"){
 
-            const t=
-                teammates.find(
-                    x=>x.target===e
-                );
+            for(
+                const t
+                of teammates
+            ){
 
-            if(t)
-                t.kills++;
+                if(
+                    t.target===enemy
+                ){
+
+                    t.kills++;
+
+                    break;
+                }
+            }
         }
+
 
         checkVictory();
     }
 }
 
 
-/* ============================================================
-   REVIVING
-   ============================================================ */
+/* =========================================================
+   REVIVE SYSTEM
+========================================================= */
 
-function reviveNearby(){
+function revivePlayerAction(){
 
     if(
-        !gameStarted ||
+        !gameRunning ||
         paused ||
         gameEnded
     )
         return;
 
 
-    /*
-     * If player is alive:
-     * revive a nearby teammate.
-     */
-
     if(
-        player.alive &&
-        !player.downed
+        !player.alive
+    )
+        return;
+
+
+    let nearest=null;
+
+    let best=999;
+
+
+    for(
+        const teammate
+        of teammates
     ){
 
-        let nearest=null;
-        let best=999;
+        if(
+            !teammate.alive ||
+            !teammate.downed
+        )
+            continue;
 
-        for(const t of teammates){
 
-            if(
-                !t.alive ||
-                !t.downed
-            )
-                continue;
+        const distance=
+            distanceXZ(
+                player.position,
+                teammate.position
+            );
 
-            const d=
-                distanceXZ(
-                    player.position,
-                    t.position
-                );
-
-            if(d<best){
-
-                best=d;
-                nearest=t;
-            }
-        }
 
         if(
-            nearest &&
-            best<5
+            distance<best
         ){
 
-            nearest.health=70;
-            nearest.downed=false;
-
-            score+=50;
-
-            message(
-                "❤️ You revived "+
-                nearest.name+
-                "!"
-            );
+            best=distance;
+            nearest=teammate;
         }
+    }
 
-        return;
+
+    if(
+        nearest &&
+        best<6
+    ){
+
+        nearest.downed=false;
+
+        nearest.health=70;
+
+        score+=75;
+
+
+        showMessage(
+            "❤️ You revived "+
+            nearest.name+
+            "!"
+        );
+
+    }else{
+
+        showMessage(
+            "Get closer to a DOWN teammate."
+        );
     }
 }
 
 
-function aiRevive(t,dt){
+/*
+   AI teammates can revive player
+   and other teammates.
+*/
+
+function updateRevives(
+    teammate,
+    dt
+){
 
     if(
-        !t.alive ||
-        t.downed
+        !teammate.alive ||
+        teammate.downed
     )
         return;
 
@@ -1763,141 +2141,164 @@ function aiRevive(t,dt){
         ...teammates
     ];
 
+
     let victim=null;
     let best=999;
 
 
-    for(const f of friends){
+    for(
+        const friend
+        of friends
+    ){
 
         if(
-            f===t ||
-            !f.alive ||
-            !f.downed
+            friend===teammate ||
+            !friend.alive ||
+            !friend.downed
         )
             continue;
 
-        const d=
+
+        const distance=
             distanceXZ(
-                t.position,
-                f.position
+                teammate.position,
+                friend.position
             );
 
-        if(d<best){
 
-            best=d;
-            victim=f;
+        if(
+            distance<best &&
+            distance<60
+        ){
+
+            best=distance;
+            victim=friend;
         }
     }
 
 
     if(!victim)
-        return;
+        return false;
 
-
-    /*
-     * Move toward downed friend.
-     */
 
     if(best>3){
 
         moveAI(
-            t,
+            teammate,
             victim.position,
             dt,
-            1
+            1.15
         );
 
     }else{
 
-        t.reviveTimer+=dt;
+        teammate.reviveTimer+=dt;
 
-        if(t.reviveTimer>2){
 
-            victim.health=60;
+        if(
+            teammate.reviveTimer>=2
+        ){
+
             victim.downed=false;
 
-            t.reviveTimer=0;
+            victim.health=65;
 
-            message(
-                "❤️ "+t.name+
+            teammate.reviveTimer=0;
+
+
+            showMessage(
+                "❤️ "+
+                teammate.name+
                 " revived "+
-                (victim===player
+                (
+                    victim===player
                     ?playerName
-                    :victim.name)
+                    :victim.name
+                )
             );
         }
     }
+
+
+    return true;
 }
 
 
-/* ============================================================
+/* =========================================================
    TEAMMATE AI
-   ============================================================ */
+========================================================= */
 
 function updateTeammates(dt){
 
-    for(const t of teammates){
+    for(
+        const teammate
+        of teammates
+    ){
 
         if(
-            !t.alive ||
-            t.downed
+            !teammate.alive ||
+            teammate.downed
         )
             continue;
 
 
         /*
-         * FIRST PRIORITY:
-         * rescue squad members.
-         */
+          Priority 1:
+          Save squad members.
+        */
 
-        const wasReviving=
-            findDownedFriend(t);
-
-        if(wasReviving){
-
-            aiRevive(t,dt);
+        if(
+            updateRevives(
+                teammate,
+                dt
+            )
+        )
             continue;
-        }
 
 
         /*
-         * SECOND:
-         * fight enemies.
-         */
+          Priority 2:
+          Find enemy.
+        */
 
-        const target=
-            findEnemyForTeammate(t);
+        const enemy=
+            chooseEnemy(
+                teammate
+            );
 
-        t.target=target;
+
+        teammate.target=enemy;
 
 
-        if(target){
+        if(enemy){
 
-            const d=
+            const distance=
                 distanceXZ(
-                    t.position,
-                    target.position
+                    teammate.position,
+                    enemy.position
                 );
 
 
             /*
-             * Keep teammates separated.
-             */
+              Different teammates use
+              different preferred ranges.
+            */
 
-            let desired=15;
+            const preferred=
+                teammate.name==="Rex"
+                ?23
+                :teammate.name==="Nova"
+                ?18
+                :15;
 
-            if(t.name==="Rex")
-                desired=21;
 
-            if(t.name==="Nova")
-                desired=18;
-
-
-            if(d>desired){
+            if(
+                distance>preferred
+            ){
 
                 moveAI(
-                    t,
-                    target.position,
+                    teammate,
+                    enemy.position,
                     dt,
                     1
                 );
@@ -1905,68 +2306,79 @@ function updateTeammates(dt){
             }else{
 
                 /*
-                 * Strafe independently.
-                 */
+                  Independent strafing.
+                */
 
-                const side=
-                    Math.sin(
-                        performance.now()/
-                        700+
-                        t.mesh.id
-                    );
+                const time=
+                    performance.now()/800;
 
-                const p=
-                    target.position.clone();
+                const offset=
+                    time+
+                    teammate.squadSlot*2.4;
 
-                p.x+=side*5;
-                p.z+=Math.cos(
-                    performance.now()/900+
-                    t.mesh.id
-                )*5;
+
+                const target=
+                    enemy.position.clone();
+
+
+                target.x+=
+                    Math.cos(offset)*
+                    7;
+
+                target.z+=
+                    Math.sin(offset)*
+                    7;
+
 
                 moveAI(
-                    t,
-                    p,
+                    teammate,
+                    target,
                     dt,
-                    .5
+                    .65
                 );
             }
 
 
             teammateShoot(
-                t,
-                target
+                teammate,
+                enemy
             );
 
         }else{
 
             /*
-             * No enemy:
-             * patrol around the player.
-             */
+              No enemy nearby:
+              maintain formation,
+              but each teammate gets
+              a different position.
+            */
 
             const angle=
-                t.wander+
-                performance.now()/6000;
+                teammate.wanderAngle+
+                performance.now()/7000;
+
 
             const radius=
-                10+
-                t.mesh.id%4*5;
+                9+
+                teammate.squadSlot*5;
 
-            const p=
+
+            const target=
                 player.position.clone();
 
-            p.x+=
+
+            target.x+=
                 Math.cos(angle)*
                 radius;
 
-            p.z+=
+            target.z+=
                 Math.sin(angle)*
                 radius;
 
+
             moveAI(
-                t,
-                p,
+                teammate,
+                target,
                 dt,
                 .45
             );
@@ -1975,100 +2387,92 @@ function updateTeammates(dt){
 }
 
 
-function findDownedFriend(t){
-
-    const friends=[
-        player,
-        ...teammates
-    ];
-
-    for(const f of friends){
-
-        if(
-            f!==t &&
-            f.alive &&
-            f.downed &&
-            distanceXZ(
-                t.position,
-                f.position
-            )<50
-        ){
-            return true;
-        }
-    }
-
-    return false;
-}
-
-
-function findEnemyForTeammate(t){
+function chooseEnemy(teammate){
 
     let best=null;
-    let bestValue=-99999;
+    let bestScore=-99999;
 
-    for(const e of enemies){
 
-        if(!e.alive)
+    for(
+        const enemy
+        of enemies
+    ){
+
+        if(!enemy.alive)
             continue;
 
-        const d=
+
+        const distance=
             distanceXZ(
-                t.position,
-                e.position
+                teammate.position,
+                enemy.position
             );
 
-        if(d>90)
+
+        if(distance>100)
             continue;
 
+
         let value=
-            100-d;
+            100-distance;
 
 
         /*
-         * Prefer enemies near teammates.
-         */
+          Protect squad members:
+          enemies near teammates become
+          higher priority.
+        */
 
         const squad=[
             player,
             ...teammates
         ];
 
-        for(const f of squad){
+
+        for(
+            const friend
+            of squad
+        ){
 
             if(
-                !f.alive ||
-                f.downed
+                !friend.alive ||
+                friend.downed
             )
                 continue;
 
-            const fd=
+
+            const danger=
                 distanceXZ(
-                    e.position,
-                    f.position
+                    enemy.position,
+                    friend.position
                 );
 
-            if(fd<15)
-                value+=35;
+
+            if(danger<18)
+                value+=40;
         }
 
 
-        if(value>bestValue){
+        if(
+            value>bestScore
+        ){
 
-            bestValue=value;
-            best=e;
+            bestScore=value;
+            best=enemy;
         }
     }
+
 
     return best;
 }
 
 
-/* ============================================================
+/* =========================================================
    AI MOVEMENT
-   ============================================================ */
+========================================================= */
 
 function moveAI(
-    t,
+    teammate,
     target,
     dt,
     multiplier
@@ -2076,42 +2480,43 @@ function moveAI(
 
     let dx=
         target.x-
-        t.position.x;
+        teammate.position.x;
+
 
     let dz=
         target.z-
-        t.position.z;
+        teammate.position.z;
 
-    const len=
+
+    const length=
         Math.sqrt(
             dx*dx+
             dz*dz
         );
 
-    if(len<.2)
+
+    if(length<.2)
         return;
 
-    let nx=dx/len;
-    let nz=dz/len;
+
+    let nx=
+        dx/length;
+
+    let nz=
+        dz/length;
 
 
     /*
-     * Building avoidance.
-     */
-
-    const testX=
-        t.position.x+
-        nx*2;
-
-    const testZ=
-        t.position.z+
-        nz*2;
+      Basic wall avoidance.
+    */
 
     if(
         buildingCollision(
-            testX,
-            testZ,
-            t.radius
+            teammate.position.x+
+            nx*2,
+            teammate.position.z+
+            nz*2,
+            teammate.radius
         )
     ){
 
@@ -2123,75 +2528,85 @@ function moveAI(
 
 
     /*
-     * Squad separation.
-     */
+      Teammate separation.
+      This prevents them from stacking.
+    */
 
-    for(const other of teammates){
+    for(
+        const other
+        of teammates
+    ){
 
         if(
-            other===t ||
+            other===teammate ||
             !other.alive ||
             other.downed
         )
             continue;
 
+
         const dx=
-            t.position.x-
+            teammate.position.x-
             other.position.x;
 
         const dz=
-            t.position.z-
+            teammate.position.z-
             other.position.z;
 
-        const d=
+
+        const distance=
             Math.sqrt(
                 dx*dx+
                 dz*dz
             );
 
+
         if(
-            d>0 &&
-            d<5
+            distance>0 &&
+            distance<5
         ){
 
             nx+=
-                dx/d*.8;
+                dx/distance*.8;
 
             nz+=
-                dz/d*.8;
+                dz/distance*.8;
         }
     }
 
 
     const speed=
-        7*
+        6.8*
         multiplier;
 
 
-    moveObject(
-        t,
+    moveEntity(
+        teammate,
         nx*speed*dt,
         nz*speed*dt
     );
 
 
-    t.mesh.rotation.y=
-        Math.atan2(nx,nz);
+    teammate.mesh.rotation.y=
+        Math.atan2(
+            nx,
+            nz
+        );
 }
 
 
-/* ============================================================
+/* =========================================================
    TEAMMATE SHOOTING
-   ============================================================ */
+========================================================= */
 
 function teammateShoot(
-    t,
-    target
+    teammate,
+    enemy
 ){
 
     if(
-        !target ||
-        !target.alive
+        !enemy ||
+        !enemy.alive
     )
         return;
 
@@ -2199,51 +2614,58 @@ function teammateShoot(
     const now=
         performance.now();
 
+
     if(
-        now-t.shootTimer<
-        450
+        now-teammate.shotTimer<
+        500
     )
         return;
 
 
-    const d=
+    const distance=
         distanceXZ(
-            t.position,
-            target.position
+            teammate.position,
+            enemy.position
         );
 
-    if(d>75)
+
+    if(distance>85)
         return;
 
 
-    t.shootTimer=now;
+    teammate.shotTimer=now;
 
 
     const origin=
         new THREE.Vector3(
-            t.position.x,
-            t.position.y+1.5,
-            t.position.z
+            teammate.position.x,
+            teammate.position.y+1.45,
+            teammate.position.z
         );
 
 
-    const targetPos=
+    const target=
         new THREE.Vector3(
-            target.position.x,
-            target.position.y+1,
-            target.position.z
+            enemy.position.x,
+            enemy.position.y+1,
+            enemy.position.z
         );
 
 
-    targetPos.x+=
-        (Math.random()-.5)*1.2;
+    /*
+      Small aim variation makes
+      AI less perfectly accurate.
+    */
 
-    targetPos.z+=
-        (Math.random()-.5)*1.2;
+    target.x+=
+        (Math.random()-.5)*1.5;
+
+    target.z+=
+        (Math.random()-.5)*1.5;
 
 
     const direction=
-        targetPos
+        target
         .sub(origin)
         .normalize();
 
@@ -2256,36 +2678,45 @@ function teammateShoot(
 }
 
 
-/* ============================================================
+/* =========================================================
    ENEMY AI
-   ============================================================ */
+========================================================= */
 
 function updateEnemies(dt){
 
-    for(const e of enemies){
+    for(
+        const enemy
+        of enemies
+    ){
 
-        if(!e.alive)
+        if(!enemy.alive)
             continue;
 
-        const target=
-            findEnemyTarget(e);
 
-        e.target=target;
+        const target=
+            chooseEnemyTarget(
+                enemy
+            );
+
+
+        enemy.target=target;
+
 
         if(!target)
             continue;
 
-        const d=
+
+        const distance=
             distanceXZ(
-                e.position,
+                enemy.position,
                 target.position
             );
 
 
-        if(d>15){
+        if(distance>17){
 
             moveEnemy(
-                e,
+                enemy,
                 target.position,
                 dt
             );
@@ -2293,7 +2724,7 @@ function updateEnemies(dt){
         }else{
 
             enemyShoot(
-                e,
+                enemy,
                 target
             );
         }
@@ -2301,71 +2732,92 @@ function updateEnemies(dt){
 }
 
 
-function findEnemyTarget(e){
+function chooseEnemyTarget(enemy){
 
-    const possible=[
+    const targets=[
         player,
         ...teammates
     ];
 
+
     let best=null;
-    let bestDistance=9999;
+    let bestDistance=99999;
 
 
-    for(const p of possible){
+    for(
+        const target
+        of targets
+    ){
 
         if(
-            !p.alive ||
-            p.downed
+            !target.alive ||
+            target.downed
         )
             continue;
 
-        const d=
+
+        const distance=
             distanceXZ(
-                e.position,
-                p.position
+                enemy.position,
+                target.position
             );
 
-        if(d<bestDistance){
 
-            bestDistance=d;
-            best=p;
+        if(
+            distance<bestDistance
+        ){
+
+            bestDistance=distance;
+            best=target;
         }
     }
+
 
     return best;
 }
 
 
 function moveEnemy(
-    e,
+    enemy,
     target,
     dt
 ){
 
     let dx=
         target.x-
-        e.position.x;
+        enemy.position.x;
+
 
     let dz=
         target.z-
-        e.position.z;
+        enemy.position.z;
 
-    const len=
+
+    const length=
         Math.sqrt(
             dx*dx+
             dz*dz
         )||1;
 
-    let nx=dx/len;
-    let nz=dz/len;
 
+    let nx=
+        dx/length;
+
+    let nz=
+        dz/length;
+
+
+    /*
+      Avoid buildings.
+    */
 
     if(
         buildingCollision(
-            e.position.x+nx*2,
-            e.position.z+nz*2,
-            e.radius
+            enemy.position.x+
+            nx*2,
+            enemy.position.z+
+            nz*2,
+            enemy.radius
         )
     ){
 
@@ -2377,79 +2829,94 @@ function moveEnemy(
 
 
     /*
-     * Enemy separation.
-     */
+      Enemy separation.
+    */
 
-    for(const other of enemies){
+    for(
+        const other
+        of enemies
+    ){
 
         if(
-            other===e ||
+            other===enemy ||
             !other.alive
         )
             continue;
 
+
         const dx=
-            e.position.x-
+            enemy.position.x-
             other.position.x;
 
         const dz=
-            e.position.z-
+            enemy.position.z-
             other.position.z;
 
-        const d=
+
+        const distance=
             Math.sqrt(
                 dx*dx+
                 dz*dz
             );
 
+
         if(
-            d>0 &&
-            d<4
+            distance>0 &&
+            distance<4
         ){
 
-            nx+=dx/d*.5;
-            nz+=dz/d*.5;
+            nx+=
+                dx/distance*.5;
+
+            nz+=
+                dz/distance*.5;
         }
     }
 
 
-    moveObject(
-        e,
+    moveEntity(
+        enemy,
         nx*5*dt,
         nz*5*dt
     );
 
-    e.mesh.rotation.y=
-        Math.atan2(nx,nz);
+
+    enemy.mesh.rotation.y=
+        Math.atan2(
+            nx,
+            nz
+        );
 }
 
 
 function enemyShoot(
-    e,
+    enemy,
     target
 ){
 
     const now=
         performance.now();
 
+
     if(
-        now-e.shootTimer<
-        850
+        now-enemy.shotTimer<
+        800
     )
         return;
 
-    e.shootTimer=now;
+
+    enemy.shotTimer=now;
 
 
     const origin=
         new THREE.Vector3(
-            e.position.x,
-            e.position.y+1.4,
-            e.position.z
+            enemy.position.x,
+            enemy.position.y+1.45,
+            enemy.position.z
         );
 
 
-    const targetPos=
+    const aim=
         new THREE.Vector3(
             target.position.x,
             target.position.y+1,
@@ -2457,15 +2924,19 @@ function enemyShoot(
         );
 
 
-    targetPos.x+=
-        (Math.random()-.5)*1.5;
+    /*
+      Enemy aim isn't perfect.
+    */
 
-    targetPos.z+=
-        (Math.random()-.5)*1.5;
+    aim.x+=
+        (Math.random()-.5)*2;
+
+    aim.z+=
+        (Math.random()-.5)*2;
 
 
     const direction=
-        targetPos
+        aim
         .sub(origin)
         .normalize();
 
@@ -2478,52 +2949,57 @@ function enemyShoot(
 }
 
 
-/* ============================================================
-   GAME END
-   ============================================================ */
+/* =========================================================
+   GAME VICTORY / DEFEAT
+========================================================= */
 
 function checkVictory(){
 
-    const alive=
+    const remaining=
         enemies.filter(
             e=>e.alive
         ).length;
 
-    if(alive===0){
 
-        finishGame(
+    if(
+        remaining===0
+    ){
+
+        endGame(
             true,
-            "Your squad eliminated the entire enemy team!"
+            "Your squad defeated the entire enemy team!"
         );
     }
 }
 
 
-function checkDefeat(){
+function checkTeamDefeat(){
 
-    const all=[
+    const squad=[
         player,
         ...teammates
     ];
 
+
     const active=
-        all.some(
-            x=>
-                x.alive &&
-                !x.downed
+        squad.some(
+            member=>
+                member.alive &&
+                !member.downed
         );
+
 
     if(!active){
 
-        finishGame(
+        endGame(
             false,
-            "Your entire squad has been defeated."
+            "Every member of your squad has been defeated."
         );
     }
 }
 
 
-function finishGame(
+function endGame(
     victory,
     text
 ){
@@ -2531,130 +3007,187 @@ function finishGame(
     if(gameEnded)
         return;
 
+
     gameEnded=true;
+
 
     document.exitPointerLock?.();
 
+
     document.getElementById(
-        "end"
+        "gameOver"
     ).classList.remove(
         "hidden"
     );
 
+
     document.getElementById(
-        "endTitle"
+        "gameOverTitle"
     ).textContent=
         victory
         ? "🏆 TEAM VICTORY!"
         : "💀 TEAM DEFEAT";
 
+
     document.getElementById(
-        "endText"
+        "gameOverText"
     ).textContent=
         text+
-        " Score: "+
+        " Final score: "+
         score;
 }
 
 
-/* ============================================================
+/* =========================================================
    PAUSE
-   ============================================================ */
+========================================================= */
 
 function togglePause(){
 
     if(
-        !gameStarted ||
+        !gameRunning ||
         gameEnded
     )
         return;
 
+
     paused=!paused;
 
+
     document.getElementById(
-        "pause"
+        "pauseScreen"
     ).classList.toggle(
         "hidden",
         !paused
     );
 
-    if(paused)
+
+    if(paused){
+
         document.exitPointerLock?.();
-    else
+
+    }else{
+
         renderer.domElement.requestPointerLock?.();
+    }
 }
 
 
-/* ============================================================
+/* =========================================================
    HUD
-   ============================================================ */
+========================================================= */
 
 function updateHUD(){
 
     document.getElementById(
-        "hp"
+        "healthText"
     ).textContent=
-        Math.round(
-            player.health
+        Math.max(
+            0,
+            Math.round(player.health)
         );
 
+
     document.getElementById(
-        "ammo"
+        "ammoText"
     ).textContent=
         ammo;
 
+
     document.getElementById(
-        "score"
+        "scoreText"
     ).textContent=
         score;
 
 
-    let teamHTML="";
+    const friendlyAlive=
+        [
+            player,
+            ...teammates
+        ].filter(
+            x=>x.alive
+        ).length;
 
-    const all=[
+
+    const enemyAlive=
+        enemies.filter(
+            x=>x.alive
+        ).length;
+
+
+    document.getElementById(
+        "friendlyCount"
+    ).textContent=
+        friendlyAlive;
+
+
+    document.getElementById(
+        "enemyCount"
+    ).textContent=
+        enemyAlive;
+
+
+    let squadHTML="";
+
+
+    const squad=[
         player,
         ...teammates
     ];
 
-    for(const p of all){
+
+    for(
+        const member
+        of squad
+    ){
 
         const name=
-            p===player
+            member===player
             ?playerName
-            :p.name;
+            :member.name;
 
-        let status="";
 
-        if(!p.alive)
+        let status;
+
+
+        if(!member.alive){
+
             status=
                 `<span class="dead">DEAD</span>`;
-        else if(p.downed)
-            status=
-                `<span class="down">DOWN — REVIVE!</span>`;
-        else
-            status=
-                `<span class="alive">HP ${Math.round(p.health)}</span>`;
 
-        teamHTML+=
-            `<div class="member">
-                ${p===player?"⭐ ":""}${name}
+        }else if(member.downed){
+
+            status=
+                `<span class="downed">DOWN</span>`;
+
+        }else{
+
+            status=
+                `<span class="ok">
+                    HP ${Math.round(member.health)}
+                </span>`;
+        }
+
+
+        squadHTML+=
+            `<div class="squadMember">
+                ${member===player?"⭐ ":""}${name}
                 — ${status}
             </div>`;
     }
 
+
     document.getElementById(
-        "teamMembers"
+        "squadList"
     ).innerHTML=
-        teamHTML;
+        squadHTML;
 
 
-    updateLeaderboard();
-}
+    /*
+      Leaderboard
+    */
 
-
-function updateLeaderboard(){
-
-    const list=[
+    const players=[
         {
             name:playerName,
             kills:playerKills
@@ -2667,52 +3200,181 @@ function updateLeaderboard(){
         )
     ];
 
-    list.sort(
+
+    players.sort(
         (a,b)=>
             b.kills-a.kills
     );
 
 
-    let html="";
+    let boardHTML="";
 
-    for(
-        let i=0;
-        i<list.length;
-        i++
-    ){
 
-        html+=
-            `<div class="row">
-                <span>${i+1}. ${list[i].name}</span>
-                <span>🔫 ${list[i].kills}</span>
-            </div>`;
-    }
+    players.forEach(
+        (p,i)=>{
+
+            boardHTML+=
+                `<div class="boardRow">
+                    <span>${i+1}. ${p.name}</span>
+                    <span>🔫 ${p.kills}</span>
+                </div>`;
+        }
+    );
+
 
     document.getElementById(
-        "leaderRows"
-    ).innerHTML=html;
+        "leaderList"
+    ).innerHTML=
+        boardHTML;
 }
 
 
-/* ============================================================
+/* =========================================================
+   TEAMMATE LOCATION MARKERS
+========================================================= */
+
+function updateMarkers(){
+
+    for(
+        const marker
+        of markers
+    ){
+
+        marker.remove();
+    }
+
+
+    markers=[];
+
+
+    for(
+        const teammate
+        of teammates
+    ){
+
+        if(!teammate.alive)
+            continue;
+
+
+        const world=
+            new THREE.Vector3(
+                teammate.position.x,
+                teammate.position.y+3.5,
+                teammate.position.z
+            );
+
+
+        const screen=
+            world.clone().project(
+                camera
+            );
+
+
+        const visible=
+            screen.z>-1 &&
+            screen.z<1;
+
+
+        const x=
+            (screen.x*.5+.5)*
+            innerWidth;
+
+
+        const y=
+            (-screen.y*.5+.5)*
+            innerHeight;
+
+
+        const marker=
+            document.createElement(
+                "div"
+            );
+
+
+        marker.className="marker";
+
+
+        marker.innerHTML=
+            `<span class="markerArrow">
+                ${teammate.downed?"⚠️":"⬇️"}
+            </span>
+            ${teammate.name}`;
+
+
+        if(
+            visible &&
+            x>0 &&
+            x<innerWidth &&
+            y>0 &&
+            y<innerHeight
+        ){
+
+            marker.style.left=
+                x+"px";
+
+            marker.style.top=
+                y+"px";
+
+        }else{
+
+            /*
+              Keep offscreen teammates
+              visible at the edge.
+            */
+
+            marker.style.left=
+                Math.max(
+                    35,
+                    Math.min(
+                        innerWidth-35,
+                        x
+                    )
+                )+"px";
+
+
+            marker.style.top=
+                Math.max(
+                    80,
+                    Math.min(
+                        innerHeight-60,
+                        y
+                    )
+                )+"px";
+        }
+
+
+        document.body.appendChild(
+            marker
+        );
+
+
+        markers.push(marker);
+    }
+}
+
+
+/* =========================================================
    MESSAGE
-   ============================================================ */
+========================================================= */
 
-let messageTime=0;
+let messageTimer=0;
 
-function message(text){
+
+function showMessage(text){
 
     document.getElementById(
         "message"
-    ).textContent=text;
+    ).textContent=
+        text;
 
-    messageTime=3;
+
+    messageTimer=3;
 }
 
 
-/* ============================================================
-   DISTANCE
-   ============================================================ */
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function distanceXZ(a,b){
 
@@ -2720,9 +3382,11 @@ function distanceXZ(a,b){
         a.position.x-
         b.position.x;
 
+
     const dz=
         a.position.z-
         b.position.z;
+
 
     return Math.sqrt(
         dx*dx+
@@ -2731,15 +3395,36 @@ function distanceXZ(a,b){
 }
 
 
-/* ============================================================
-   MAIN LOOP
-   ============================================================ */
+function distance3D(pos,obj){
+
+    const x=
+        obj.position.x;
+
+    const y=
+        obj.position.y+1;
+
+    const z=
+        obj.position.z;
+
+
+    return Math.sqrt(
+        (pos.x-x)**2+
+        (pos.y-y)**2+
+        (pos.z-z)**2
+    );
+}
+
+
+/* =========================================================
+   GAME LOOP
+========================================================= */
 
 function animate(){
 
     requestAnimationFrame(
         animate
     );
+
 
     const dt=
         Math.min(
@@ -2749,7 +3434,7 @@ function animate(){
 
 
     if(
-        gameStarted &&
+        gameRunning &&
         !paused &&
         !gameEnded
     ){
@@ -2769,18 +3454,33 @@ function animate(){
 
         updateHUD();
 
+        updateMarkers();
 
-        if(messageTime>0){
 
-            messageTime-=dt;
+        if(
+            messageTimer>0
+        ){
 
-            if(messageTime<=0){
+            messageTimer-=dt;
+
+
+            if(
+                messageTimer<=0
+            ){
 
                 document.getElementById(
                     "message"
                 ).textContent="";
             }
         }
+
+
+        /*
+          If player remains downed,
+          squad AI can still revive them.
+        */
+
+        checkTeamDefeat();
     }
 
 
@@ -2791,29 +3491,25 @@ function animate(){
 }
 
 
-/* ============================================================
+/* =========================================================
    RESIZE
-   ============================================================ */
+========================================================= */
 
 function resize(){
 
     camera.aspect=
-        innerWidth/innerHeight;
+        innerWidth/
+        innerHeight;
+
 
     camera.updateProjectionMatrix();
+
 
     renderer.setSize(
         innerWidth,
         innerHeight
     );
 }
-
-
-/* ============================================================
-   START ENGINE
-   ============================================================ */
-
-init();
 
 </script>
 
